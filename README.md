@@ -48,7 +48,7 @@ Key Topics
 
 Run the prerequisite installation script at `~/DNNPipe-Tutorial/`:
 ```bash
-./scripts/install_prerequisites.sh
+source ./scripts/install_prerequisites.sh
 ```
 
 ## Environment Setup
