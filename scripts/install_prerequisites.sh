@@ -68,8 +68,8 @@ python3 -m venv "$VENV_ROOT"
 
 # update venv configuration info to ~/.bashrc
 echo "[INFO] Created virtual environment: ${VENV_ROOT}"
-echo "export VENV_ROOT=\"${VENV_RELATIVE_ROOT}\"" >> ~/.bashrc
-echo 'source "$VENV_ROOT/bin/activate"' >> ~/.bashrc
+echo "export VENV_ROOT=${VENV_RELATIVE_ROOT}" >> ~/.bashrc
+echo "source $VENV_ROOT/bin/activate" >> ~/.bashrc
 
 # install bazelisk and bazel
 if [ ! -f /usr/bin/bazel ]; then
