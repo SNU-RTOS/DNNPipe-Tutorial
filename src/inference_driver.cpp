@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-    /* Receive user input */
+    /* Receive arguments */
     if (argc < 5)
     {
         std::cerr << "Usage: " << argv[0] 
