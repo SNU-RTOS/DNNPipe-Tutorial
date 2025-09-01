@@ -1,4 +1,4 @@
-# RTCSA25 Tutorial: Deep Software Stack Optimization for AI-Enabled Embedded Systems
+# DNNPipe-Tutorial
 
 ## Overview
 
@@ -46,7 +46,7 @@ Key Topics
 - Python development tools
 - Bazel build system
 
-Run the prerequisite installation script at `~/RTCSA25-Tutorial/`:
+Run the prerequisite installation script at `~/DNNPipe-Tutorial/`:
 ```bash
 ./scripts/install_prerequisites.sh
 ```
