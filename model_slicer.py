@@ -261,7 +261,8 @@ def main():
         # Prepare inputs for each slice
         if i == 0:
             for origin_input_layer in model.inputs: # model.inputs returns a list of InputLayer 
-                slice_inputs[origin_input_layer.name] = np.random.rand(1, *origin_input_layer.shape[1:])
+                slice_inputs[origin_input_layer.name] = \
+                    np.random.rand(1, *origin_input_layer.shape[1:])
         else:
             slice_inputs = get_outputs_of_previous_slice(slices[i-1])
 
