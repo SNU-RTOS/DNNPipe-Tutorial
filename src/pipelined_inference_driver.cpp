@@ -90,6 +90,7 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
 
 void stage1_worker(tflite::Interpreter* interpreter) {
     StageOutput stage_output;
+    bool print_tensor_shape = true;
 
     while (stage0_to_stage1_queue.pop(stage_output)) {
         std::string label = "Stage1 " + std::to_string(stage_output.index);
@@ -99,31 +100,39 @@ void stage1_worker(tflite::Interpreter* interpreter) {
         *  and copy the contents of stage_output.data into it */
         // Hint: std::memcpy(destination_ptr, source_ptr, num_bytes);
         // ======= Write your code here =======
-        
+        TfLiteTensor*
 
 
         // ====================================
 
         /* Inference */
         // ======= Write your code here =======
-        
+
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StageOutput */
         // Clear data in it for reuse
         stage_output.data.clear();
         stage_output.tensor_end_offsets.clear();
+        if(print_tensor_shape) std::cout << "Stage 1" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-            
 
-            // Calculate the number of elements in the tensor
+
+            // Calculate the number of elements in the i-th output tensor
+            if(print_tensor_shape) std::cout << "Output tensor " << i << " shape: ["; 
             int num_elements = 1;
-            for (int d = 0; d < output_tensor->dims->size; ++d)
-                
+            for (int d = 0; d < output_tensor->dims->size; ++d) {
+                num_elements *=
+                if(print_tensor_shape) {
+                    std::cout << output_tensor->dims->data[d];
+                    if(d != output_tensor->dims->size - 1) std::cout << ", ";
+                }
+            }
+            if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
-            // Resize stage_output.data and copy output tensor data into it
+            // Resize stage_output.data and copy output tensor's data into it
             int current_data_length = stage_output.data.size();
             stage_output.data.resize(current_data_length + num_elements);
             std::memcpy(stage_output.data.data() + current_data_length,
@@ -131,6 +140,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
                 num_elements * sizeof(float));
             stage_output.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
+        print_tensor_shape = false;
         // ====================================
     
         stage1_to_stage2_queue.push(std::move(stage_output));
@@ -144,6 +154,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
 
 void stage2_worker(tflite::Interpreter* interpreter) {
     StageOutput stage_output;
+    bool print_tensor_shape = true;
 
     while (stage1_to_stage2_queue.pop(stage_output)) {
         std::string label = "Stage2 " + std::to_string(stage_output.index);
@@ -151,22 +162,43 @@ void stage2_worker(tflite::Interpreter* interpreter) {
 
         /* Extract tensor data from stage_output.data and copy into 
         *  the corresponding input tensors of the interpreter */
+       if(print_tensor_shape) std::cout << "Stage 2" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
-            // Get i-th input tensor from the interpreter as a float pointer
+            // Get i-th input tensor object
+
             
+            // Calculate the required size of the i-th input tensor from its dimensions
+            int num_elements = 1;
+            if(print_tensor_shape) std::cout << "Input tensor " << i << " shape: [";
+            for (int d = 0; d < input_tensor->dims->size; ++d) {
+                num_elements *=
+                if(print_tensor_shape) {
+                    std::cout << input_tensor->dims->data[d];
+                    if(d != input_tensor->dims->size - 1) std::cout << ", ";
+                }
+            }
+            if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
             // Copy data from stage_output to i-th input tensor
             int start_idx = (i == 0) ? 0 : stage_output.tensor_end_offsets[i-1];
             int end_idx = stage_output.tensor_end_offsets[i];
-            std::memcpy(input_data, stage_output.data.data() + start_idx,
-                (end_idx - start_idx) * sizeof(float));
+            int given_size = end_idx - start_idx;
+
+            if(num_elements != given_size){
+                std::cerr << "[Stage 2] Input tensor " << i << " size mismatch! " << std::endl;
+                std::cerr << "Expected " << num_elements << ", got " << given_size << std::endl;
+            } else {
+
+
+            }
         } // end of for loop
+        print_tensor_shape = false;
         // ====================================
 
         /* Inference */
         // ======= Write your code here =======
-        
+
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StageOutput */
@@ -176,12 +208,12 @@ void stage2_worker(tflite::Interpreter* interpreter) {
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-            
+
 
             // Calculate the number of elements in the tensor
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d)
-                
+
 
             // Resize stage_output.data and copy output tensor data into it
             int current_data_length = stage_output.data.size();
