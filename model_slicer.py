@@ -31,7 +31,7 @@ def slice_dnn(model, start, end, input_tensors):
         model (tf.keras.Model): A Keras model object to be sliced
         start (int): Index of the first layer of the slice
         end (int): Index of the last layer of the slice
-        input_tensors (list): Inputs to the slice, list of KerasTensors
+        input_tensors (list): Inputs to the slice, list of KerasTensor(s)
 
     Key data structures:
         input_layers (dict): Newly created layers for the slice: one layer per input tensor
