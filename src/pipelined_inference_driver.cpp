@@ -183,11 +183,11 @@ void stage2_worker(tflite::Interpreter* interpreter) {
             // Copy data from stage_output to i-th input tensor
             int start_idx = (i == 0) ? 0 : stage_output.tensor_end_offsets[i-1];
             int end_idx = stage_output.tensor_end_offsets[i];
-            int given_size = end_idx - start_idx;
+            int given_elements = end_idx - start_idx;
 
-            if(num_elements != given_size){
+            if(num_elements != given_elements){
                 std::cerr << "[Stage 2] Input tensor " << i << " size mismatch! " << std::endl;
-                std::cerr << "Expected " << num_elements << ", got " << given_size << std::endl;
+                std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
 
 
