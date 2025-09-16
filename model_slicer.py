@@ -31,7 +31,7 @@ def slice_dnn(model, start, end, input_tensors):
         model (tf.keras.Model): A Keras model object to be sliced
         start (int): Index of the first layer of the slice
         end (int): Index of the last layer of the slice
-        input_tensors (dict): Inputs to the slice {input layer name: input tensor}
+        input_tensors (list): Inputs to the slice, list of KerasTensors
 
     Key data structures:
         input_layers (dict): Newly created layers for the slice: one layer per input tensor
@@ -49,8 +49,9 @@ def slice_dnn(model, start, end, input_tensors):
 
     # 6-(1) Create input layers and figure out the usage of each input layer
     # Case 1, 2, 3, and 4
-    for name, tensor in input_tensors.items():
+    for tensor in input_tensors:
         # Input layers are created
+        name = tensor._keras_history[0].name
         input_layers[name] = tf.keras.layers.Input(shape=tensor.shape[1:], name=name)
         
         # Inspect an input layer’s outbound nodes to see where the model consumes it
@@ -141,16 +142,8 @@ def slice_dnn(model, start, end, input_tensors):
     # 6-(4) Create and return the slice
     slice = tf.keras.models.Model(inputs=list(input_layers.values()), 
                                   outputs=tensors_from_layer)
-    
-    return slice
 
-# Prepare inputs for a slice
-def get_outputs_of_previous_slice(previous_slice):
-    slice_outputs = {}
-    for output, output_tensor in zip(previous_slice.outputs, previous_slice.outputs):
-        layer_name = output._keras_history[0].name
-        slice_outputs[layer_name] = output_tensor
-    return slice_outputs
+    return slice
 
 # Save the slice as a LiteRT model
 def convert_save_slice(output_dir, slice, slice_num):
@@ -256,15 +249,13 @@ def main():
 
     # Perform slicing and conversion
     slices = []
-    slice_inputs = {}
+    slice_inputs = []
     for i in range(num_slices):
         # Prepare inputs for each slice
         if i == 0:
-            for origin_input_layer in model.inputs: # model.inputs returns a list of InputLayer 
-                slice_inputs[origin_input_layer.name] = \
-                    np.random.rand(1, *origin_input_layer.shape[1:])
+            slice_inputs = model.inputs
         else:
-            slice_inputs = get_outputs_of_previous_slice(slices[i-1])
+            slice_inputs = slices[i-1].outputs
 
         # Slice the model using slice_dnn
         slice = slice_dnn(model, starts[i], starts[i+1]-1, slice_inputs)
