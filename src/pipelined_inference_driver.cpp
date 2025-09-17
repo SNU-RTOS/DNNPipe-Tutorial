@@ -96,37 +96,63 @@ void stage1_worker(tflite::Interpreter* interpreter) {
         std::string label = "Stage1 " + std::to_string(stage_output.index);
         util::timer_start(label);
 
-        /* Access the 0th input tensor of the interpreter as a float pointer
-        *  and copy the contents of stage_output.data into it */
-        // Hint: std::memcpy(destination_ptr, source_ptr, num_bytes);
+        /* Extract tensor data from stage_output.data and copy into 
+        *  the corresponding input tensors of the interpreter */
         // ======= Write your code here =======
-        TfLiteTensor*
+        if(print_tensor_shape) std::cout << "Input Tensor(s) of Stage 1" << std::endl;
+        for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
+            // Get i-th input tensor object
+            ?????????????????????????????
+            
+            // Calculate the required number of elements for the i-th input tensor based on its dimensions
+            int num_elements = 1;
+            if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
+            for (int d = 0; d < input_tensor->dims->size; ++d) {
+                ?????????????????????????????
+                if(print_tensor_shape) {
+                    std::cout << ?????????????????????????????;
+                    if(d != input_tensor->dims->size - 1) std::cout << ", ";
+                }
+            }
+            if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
+            // Copy data from stage_output to i-th input tensor
+            int start_idx = (i == 0) ? 0 : stage_output.tensor_end_offsets[i-1];
+            int end_idx = stage_output.tensor_end_offsets[i];
+            int given_elements = end_idx - start_idx;
 
+            if(num_elements != given_elements){
+                std::cerr << "[Stage 1] Input tensor " << i << " size mismatch! " << std::endl;
+                std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
+            } else {
+                std::memcpy(?????????????????????????????, stage_output.data.data() + start_idx,
+                            (given_elements) * sizeof(float));
+            }
+        } // end of for loop
         // ====================================
 
         /* Inference */
         // ======= Write your code here =======
-
+        ?????????????????????????????
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StageOutput */
         // Clear data in it for reuse
         stage_output.data.clear();
         stage_output.tensor_end_offsets.clear();
-        if(print_tensor_shape) std::cout << "Stage 1" << std::endl;
+        if(print_tensor_shape) std::cout << "Output Tensor(s) of Stage 1" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
+           ?????????????????????????????
 
-
-            // Calculate the number of elements in the i-th output tensor, this is only for logging!
-            if(print_tensor_shape) std::cout << "Output tensor " << i << " shape: ["; 
+            // Calculate the number of elements in the i-th output tensor
+            if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
-                num_elements *=
+                ?????????????????????????????
                 if(print_tensor_shape) {
-                    std::cout << output_tensor->dims->data[d];
+                    std::cout << ?????????????????????????????;
                     if(d != output_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -136,7 +162,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
             int current_data_length = stage_output.data.size();
             stage_output.data.resize(current_data_length + num_elements);
             std::memcpy(stage_output.data.data() + current_data_length,
-                output_tensor->data.f,
+                ?????????????????????????????,
                 num_elements * sizeof(float));
             stage_output.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
@@ -162,19 +188,19 @@ void stage2_worker(tflite::Interpreter* interpreter) {
 
         /* Extract tensor data from stage_output.data and copy into 
         *  the corresponding input tensors of the interpreter */
-       if(print_tensor_shape) std::cout << "Stage 2" << std::endl;
+        if(print_tensor_shape) std::cout << "Input Tensor(s) of Stage 2" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
             // Get i-th input tensor object
-
+            ?????????????????????????????
             
             // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
-            if(print_tensor_shape) std::cout << "Input tensor " << i << " shape: [";
+            if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
-                num_elements *=
+                ?????????????????????????????
                 if(print_tensor_shape) {
-                    std::cout << input_tensor->dims->data[d];
+                    std::cout << ?????????????????????????????;
                     if(d != input_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -189,40 +215,48 @@ void stage2_worker(tflite::Interpreter* interpreter) {
                 std::cerr << "[Stage 2] Input tensor " << i << " size mismatch! " << std::endl;
                 std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
-
-
+                std::memcpy(?????????????????????????????, stage_output.data.data() + start_idx,
+                            (given_elements) * sizeof(float));
             }
         } // end of for loop
-        print_tensor_shape = false;
         // ====================================
 
         /* Inference */
         // ======= Write your code here =======
-
+        ?????????????????????????????
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StageOutput */
         // Clear data in it for reuse
         stage_output.data.clear();
         stage_output.tensor_end_offsets.clear();
+        if(print_tensor_shape) std::cout << "Output Tensor(s) of Stage 2" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-
+            ?????????????????????????????
 
             // Calculate the number of elements in the tensor
+            if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
-            for (int d = 0; d < output_tensor->dims->size; ++d)
-
+            for (int d = 0; d < output_tensor->dims->size; ++d) {
+                num_elements *= 
+                if(print_tensor_shape) {
+                    std::cout << ????????????????????????????;
+                    if(d != output_tensor->dims->size - 1) std::cout << ", ";
+                }
+            }
+            if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
             // Resize stage_output.data and copy output tensor data into it
             int current_data_length = stage_output.data.size();
             stage_output.data.resize(current_data_length + num_elements);
             std::memcpy(stage_output.data.data() + current_data_length,
-                output_tensor->data.f,
+                ?????????????????????????????,
                 num_elements * sizeof(float));
             stage_output.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
+        print_tensor_shape = false;
         // ====================================
         stage2_to_stage3_queue.push(std::move(stage_output));
         util::timer_stop(label);
@@ -269,14 +303,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const std::string submodel0_path = argv[1];  // Path to sub-model 0
+    const std::string submodel0_path = argv[1];  // Path to submodel 0
     bool submodel0_gpu_usage = false;
     const std::string gpu_usage_str1 = argv[2];
     if(gpu_usage_str1 == "true"){
         submodel0_gpu_usage = true;
     }
 
-    const std::string submodel1_path = argv[3];  // Path to sub-model 1
+    const std::string submodel1_path = argv[3];  // Path to submodel 1
     bool submodel1_gpu_usage = false;
     const std::string gpu_usage_str2 = argv[4];
     if(gpu_usage_str2 == "true"){
@@ -300,7 +334,7 @@ int main(int argc, char* argv[]) {
     /* Load models */
     // 1. Create a std::unique_ptr<tflite::FlatBufferModel> for each sub-model
     // ======= Write your code here =======
-    
+
     
 
 
@@ -315,7 +349,7 @@ int main(int argc, char* argv[]) {
     // 2. Create two interpreter builders, one for each sub-model
     // 3. Build interpreters using the interpreter builders
     // ======= Write your code here =======
-    
+
     
 
 
@@ -334,6 +368,7 @@ int main(int argc, char* argv[]) {
     // 3. Create a GPU delegate
     // 4. Apply the GPU delegate to the submodel1 interpreter
     // ======= Write your code here =======
+
     
 
 
@@ -342,15 +377,14 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
+    
     // ====================================
 
     /* Allocate tensors */
     // 1. Allocate tensors for both interpreters
     // ======= Write your code here =======
-    
 
+    
 
 
 
@@ -369,10 +403,10 @@ int main(int argc, char* argv[]) {
     // 3. Launch stage2_worker in a new thread with submodel1 interpreter
     // 4. Launch stage3_worker in a new thread with class_labels_map
     // ======= Write your code here =======
+
     
 
 
-    
     // ====================================
 
     // Setting CPU affinity for each thread
