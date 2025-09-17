@@ -168,7 +168,7 @@ void stage2_worker(tflite::Interpreter* interpreter) {
             // Get i-th input tensor object
 
             
-            // Calculate the required size of the i-th input tensor from its dimensions
+            // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
             if(print_tensor_shape) std::cout << "Input tensor " << i << " shape: [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
