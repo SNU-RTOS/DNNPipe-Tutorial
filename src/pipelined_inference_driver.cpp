@@ -120,7 +120,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
             // Get i-th output tensor object
 
 
-            // Calculate the number of elements in the i-th output tensor
+            // Calculate the number of elements in the i-th output tensor, this is only for logging!
             if(print_tensor_shape) std::cout << "Output tensor " << i << " shape: ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
