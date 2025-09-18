@@ -33,9 +33,9 @@
 
 // === Queues for inter-stage communication ===
 // stageX_to_stageY_queue: from stageX to stageY
-InterStageQueue<StageOutput> stage0_to_stage1_queue;
-InterStageQueue<StageOutput> stage1_to_stage2_queue;
-InterStageQueue<StageOutput> stage2_to_stage3_queue;
+InterStageQueue<StagePayload> stage0_to_stage1_queue;
+InterStageQueue<StagePayload> stage1_to_stage2_queue;
+InterStageQueue<StagePayload> stage2_to_stage3_queue;
 
 void stage0_worker(const std::vector<std::string>& images, int input_period_ms) {
     auto next_wakeup_time = std::chrono::high_resolution_clock::now();
@@ -60,20 +60,20 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
             continue;
         }
 
-        /* Create an StageOutput, copy preprocessed_image data into it, 
+        /* Create an StagePayload, copy preprocessed_image data into it, 
         *  and push it into stage0_to_stage1_queue */
         // Hint: std::memcpy(destination_ptr, source_ptr, num_bytes);
-        StageOutput stage_output;
+        StagePayload stage_payload;
         // ======= Write your code here =======
-        stage_output.index = idx;
-        stage_output.data.resize(
+        stage_payload.index = idx;
+        stage_payload.data.resize(
             preprocessed_image.total() * preprocessed_image.channels());
-        std::memcpy(stage_output.data.data(), preprocessed_image.ptr<float>(), 
-            stage_output.data.size() * sizeof(float));
-        stage_output.tensor_end_offsets = 
-            {static_cast<int>(stage_output.data.size())};
+        std::memcpy(stage_payload.data.data(), preprocessed_image.ptr<float>(), 
+            stage_payload.data.size() * sizeof(float));
+        stage_payload.tensor_end_offsets = 
+            {static_cast<int>(stage_payload.data.size())};
         // ====================================
-        stage0_to_stage1_queue.push(std::move(stage_output));
+        stage0_to_stage1_queue.push(std::move(stage_payload));
         ++idx;
         
         util::timer_stop(label);
@@ -89,43 +89,43 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
 } // end of stage0_worker
 
 void stage1_worker(tflite::Interpreter* interpreter) {
-    StageOutput stage_output;
+    StagePayload stage_payload;
     bool print_tensor_shape = true;
 
-    while (stage0_to_stage1_queue.pop(stage_output)) {
-        std::string label = "Stage1 " + std::to_string(stage_output.index);
+    while (stage0_to_stage1_queue.pop(stage_payload)) {
+        std::string label = "Stage1 " + std::to_string(stage_payload.index);
         util::timer_start(label);
 
-        /* Extract tensor data from stage_output.data and copy into 
+        /* Extract tensor data from stage_payload.data and copy into 
         *  the corresponding input tensors of the interpreter */
         // ======= Write your code here =======
         if(print_tensor_shape) std::cout << "Input Tensor(s) of Stage 1" << std::endl;
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
             // Get i-th input tensor object
-            ?????????????????????????????
+            ?????
             
             // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
             if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
-                ?????????????????????????????
+                ?????
                 if(print_tensor_shape) {
-                    std::cout << ?????????????????????????????;
+                    std::cout << ?????;
                     if(d != input_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
             if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
-            // Copy data from stage_output to i-th input tensor
-            int start_idx = (i == 0) ? 0 : stage_output.tensor_end_offsets[i-1];
-            int end_idx = stage_output.tensor_end_offsets[i];
+            // Copy data from stage_payload to i-th input tensor
+            int start_idx = (i == 0) ? 0 : stage_payload.tensor_end_offsets[i-1];
+            int end_idx = stage_payload.tensor_end_offsets[i];
             int given_elements = end_idx - start_idx;
 
             if(num_elements != given_elements){
                 std::cerr << "[Stage 1] Input tensor " << i << " size mismatch! " << std::endl;
                 std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
-                std::memcpy(?????????????????????????????, stage_output.data.data() + start_idx,
+                std::memcpy(?????, stage_payload.data.data() + start_idx,
                             (given_elements) * sizeof(float));
             }
         } // end of for loop
@@ -133,43 +133,43 @@ void stage1_worker(tflite::Interpreter* interpreter) {
 
         /* Inference */
         // ======= Write your code here =======
-        ?????????????????????????????
+        ?????
         // ====================================
 
-        /* Extract data from the interpreter's output tensors and copy into a StageOutput */
+        /* Extract data from the interpreter's output tensors and copy into a StagePayload */
         // Clear data in it for reuse
-        stage_output.data.clear();
-        stage_output.tensor_end_offsets.clear();
+        stage_payload.data.clear();
+        stage_payload.tensor_end_offsets.clear();
         if(print_tensor_shape) std::cout << "Output Tensor(s) of Stage 1" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-           ?????????????????????????????
+            ?????
 
             // Calculate the number of elements in the i-th output tensor
             if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
-                ?????????????????????????????
+                ?????
                 if(print_tensor_shape) {
-                    std::cout << ?????????????????????????????;
+                    std::cout << ?????;
                     if(d != output_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
             if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
-            // Resize stage_output.data and copy output tensor's data into it
-            int current_data_length = stage_output.data.size();
-            stage_output.data.resize(current_data_length + num_elements);
-            std::memcpy(stage_output.data.data() + current_data_length,
-                ?????????????????????????????,
+            // Resize stage_payload.data and copy output tensor's data into it
+            int current_data_length = stage_payload.data.size();
+            stage_payload.data.resize(current_data_length + num_elements);
+            std::memcpy(stage_payload.data.data() + current_data_length,
+                ?????,
                 num_elements * sizeof(float));
-            stage_output.tensor_end_offsets.push_back(current_data_length + num_elements);
+            stage_payload.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
         print_tensor_shape = false;
         // ====================================
     
-        stage1_to_stage2_queue.push(std::move(stage_output));
+        stage1_to_stage2_queue.push(std::move(stage_payload));
 
         util::timer_stop(label);
     } // end of while loop
@@ -179,43 +179,43 @@ void stage1_worker(tflite::Interpreter* interpreter) {
 } // end of stage1_worker
 
 void stage2_worker(tflite::Interpreter* interpreter) {
-    StageOutput stage_output;
+    StagePayload stage_payload;
     bool print_tensor_shape = true;
 
-    while (stage1_to_stage2_queue.pop(stage_output)) {
-        std::string label = "Stage2 " + std::to_string(stage_output.index);
+    while (stage1_to_stage2_queue.pop(stage_payload)) {
+        std::string label = "Stage2 " + std::to_string(stage_payload.index);
         util::timer_start(label);
 
-        /* Extract tensor data from stage_output.data and copy into 
+        /* Extract tensor data from stage_payload.data and copy into 
         *  the corresponding input tensors of the interpreter */
         if(print_tensor_shape) std::cout << "Input Tensor(s) of Stage 2" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
             // Get i-th input tensor object
-            ?????????????????????????????
+            ?????
             
             // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
             if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
-                ?????????????????????????????
+                ?????
                 if(print_tensor_shape) {
-                    std::cout << ?????????????????????????????;
+                    std::cout << ?????;
                     if(d != input_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
             if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
-            // Copy data from stage_output to i-th input tensor
-            int start_idx = (i == 0) ? 0 : stage_output.tensor_end_offsets[i-1];
-            int end_idx = stage_output.tensor_end_offsets[i];
+            // Copy data from stage_payload to i-th input tensor
+            int start_idx = (i == 0) ? 0 : stage_payload.tensor_end_offsets[i-1];
+            int end_idx = stage_payload.tensor_end_offsets[i];
             int given_elements = end_idx - start_idx;
 
             if(num_elements != given_elements){
                 std::cerr << "[Stage 2] Input tensor " << i << " size mismatch! " << std::endl;
                 std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
-                std::memcpy(?????????????????????????????, stage_output.data.data() + start_idx,
+                std::memcpy(?????, stage_payload.data.data() + start_idx,
                             (given_elements) * sizeof(float));
             }
         } // end of for loop
@@ -223,42 +223,42 @@ void stage2_worker(tflite::Interpreter* interpreter) {
 
         /* Inference */
         // ======= Write your code here =======
-        ?????????????????????????????
+        ?????
         // ====================================
 
-        /* Extract data from the interpreter's output tensors and copy into a StageOutput */
+        /* Extract data from the interpreter's output tensors and copy into a StagePayload */
         // Clear data in it for reuse
-        stage_output.data.clear();
-        stage_output.tensor_end_offsets.clear();
+        stage_payload.data.clear();
+        stage_payload.tensor_end_offsets.clear();
         if(print_tensor_shape) std::cout << "Output Tensor(s) of Stage 2" << std::endl;
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-            ?????????????????????????????
+            ?????
 
             // Calculate the number of elements in the tensor
             if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
-                num_elements *= 
+                ?????
                 if(print_tensor_shape) {
-                    std::cout << ????????????????????????????;
+                    std::cout << ?????;
                     if(d != output_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
             if(print_tensor_shape) std::cout << "], # of elements = " << num_elements << std::endl;
 
-            // Resize stage_output.data and copy output tensor data into it
-            int current_data_length = stage_output.data.size();
-            stage_output.data.resize(current_data_length + num_elements);
-            std::memcpy(stage_output.data.data() + current_data_length,
-                ?????????????????????????????,
+            // Resize stage_payload.data and copy output tensor data into it
+            int current_data_length = stage_payload.data.size();
+            stage_payload.data.resize(current_data_length + num_elements);
+            std::memcpy(stage_payload.data.data() + current_data_length,
+                ?????,
                 num_elements * sizeof(float));
-            stage_output.tensor_end_offsets.push_back(current_data_length + num_elements);
+            stage_payload.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
         print_tensor_shape = false;
         // ====================================
-        stage2_to_stage3_queue.push(std::move(stage_output));
+        stage2_to_stage3_queue.push(std::move(stage_payload));
         util::timer_stop(label);
     } // end of while loop
 
@@ -266,18 +266,18 @@ void stage2_worker(tflite::Interpreter* interpreter) {
 } // end of stage2_worker
 
 void stage3_worker(std::unordered_map<int, std::string> class_labels_map) {
-    StageOutput stage_output;
+    StagePayload stage_payload;
 
-    while (stage2_to_stage3_queue.pop(stage_output)) {
-        std::string tlabel = "Stage3 " + std::to_string(stage_output.index);
+    while (stage2_to_stage3_queue.pop(stage_payload)) {
+        std::string tlabel = "Stage3 " + std::to_string(stage_payload.index);
         util::timer_start(tlabel);
 
-        const std::vector<float>& probs = stage_output.data;
+        const std::vector<float>& probs = stage_payload.data;
 
-        if ((stage_output.index + 1) % 10 == 0) {
+        if ((stage_payload.index + 1) % 10 == 0) {
             auto top_k_indices = util::get_topK_indices(probs, 3);
             std::cout << "\n[stage3] Top-3 prediction for image index "
-                      << stage_output.index << ":\n";
+                      << stage_payload.index << ":\n";
             for (int idx : top_k_indices) {
                 std::string label = class_labels_map.count(idx)
                     ? class_labels_map.at(idx)
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    
+
     // ====================================
 
     /* Allocate tensors */

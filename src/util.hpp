@@ -40,7 +40,7 @@
 
 /* Data structures for pipelined inference */
 // Data container used to pass results between pipeline stages
-struct StageOutput {
+struct StagePayload {
     int index;                           // Index of the input image (used for tracking)
     std::vector<float> data;             // Flattened data of input/output tensors
     std::vector<int> tensor_end_offsets; // Offsets marking the end of each tensor in the flattened data
