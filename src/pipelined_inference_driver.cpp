@@ -102,15 +102,15 @@ void stage1_worker(tflite::Interpreter* interpreter) {
         if(print_tensor_shape) std::cout << "Input Tensor(s) of Stage 1" << std::endl;
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
             // Get i-th input tensor object
-            ?????
+            TfLiteTensor* input_tensor = interpreter->input_tensor(i);
             
             // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
             if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
-                ?????
+                num_elements *= input_tensor->dims->data[d];
                 if(print_tensor_shape) {
-                    std::cout << ?????;
+                    std::cout << input_tensor->dims->data[d];
                     if(d != input_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -125,7 +125,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
                 std::cerr << "[Stage 1] Input tensor " << i << " size mismatch! " << std::endl;
                 std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
-                std::memcpy(?????, stage_payload.data.data() + start_idx,
+                std::memcpy(input_tensor->data.f, stage_payload.data.data() + start_idx,
                             (given_elements) * sizeof(float));
             }
         } // end of for loop
@@ -133,7 +133,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
 
         /* Inference */
         // ======= Write your code here =======
-        ?????
+        interpreter->Invoke();
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StagePayload */
@@ -144,15 +144,15 @@ void stage1_worker(tflite::Interpreter* interpreter) {
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-            ?????
+            TfLiteTensor* output_tensor = interpreter->output_tensor(i);
 
             // Calculate the number of elements in the i-th output tensor
             if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
-                ?????
+                num_elements *= output_tensor->dims->data[d];
                 if(print_tensor_shape) {
-                    std::cout << ?????;
+                    std::cout << output_tensor->dims->data[d];
                     if(d != output_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -162,7 +162,7 @@ void stage1_worker(tflite::Interpreter* interpreter) {
             int current_data_length = stage_payload.data.size();
             stage_payload.data.resize(current_data_length + num_elements);
             std::memcpy(stage_payload.data.data() + current_data_length,
-                ?????,
+                output_tensor->data.f,
                 num_elements * sizeof(float));
             stage_payload.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
@@ -192,15 +192,15 @@ void stage2_worker(tflite::Interpreter* interpreter) {
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->inputs().size(); ++i) {
             // Get i-th input tensor object
-            ?????
+            TfLiteTensor* input_tensor = interpreter->input_tensor(i);
             
             // Calculate the required number of elements for the i-th input tensor based on its dimensions
             int num_elements = 1;
             if(print_tensor_shape) std::cout << "- Shape of input tensor " << i << ": [";
             for (int d = 0; d < input_tensor->dims->size; ++d) {
-                ?????
+                num_elements *= input_tensor->dims->data[d];
                 if(print_tensor_shape) {
-                    std::cout << ?????;
+                    std::cout << input_tensor->dims->data[d];
                     if(d != input_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -215,7 +215,7 @@ void stage2_worker(tflite::Interpreter* interpreter) {
                 std::cerr << "[Stage 2] Input tensor " << i << " size mismatch! " << std::endl;
                 std::cerr << "Expected " << num_elements << ", got " << given_elements << std::endl;
             } else {
-                std::memcpy(?????, stage_payload.data.data() + start_idx,
+                std::memcpy(input_tensor->data.f, stage_payload.data.data() + start_idx,
                             (given_elements) * sizeof(float));
             }
         } // end of for loop
@@ -223,7 +223,7 @@ void stage2_worker(tflite::Interpreter* interpreter) {
 
         /* Inference */
         // ======= Write your code here =======
-        ?????
+        interpreter->Invoke();
         // ====================================
 
         /* Extract data from the interpreter's output tensors and copy into a StagePayload */
@@ -234,15 +234,15 @@ void stage2_worker(tflite::Interpreter* interpreter) {
         // ======= Write your code here =======
         for (size_t i = 0; i < interpreter->outputs().size(); ++i) {
             // Get i-th output tensor object
-            ?????
+            TfLiteTensor* output_tensor = interpreter->output_tensor(i);
 
             // Calculate the number of elements in the tensor
             if(print_tensor_shape) std::cout << "- Shape of output tensor " << i << ": ["; 
             int num_elements = 1;
             for (int d = 0; d < output_tensor->dims->size; ++d) {
-                ?????
+                num_elements *= output_tensor->dims->data[d];
                 if(print_tensor_shape) {
-                    std::cout << ?????;
+                    std::cout << output_tensor->dims->data[d];
                     if(d != output_tensor->dims->size - 1) std::cout << ", ";
                 }
             }
@@ -252,7 +252,7 @@ void stage2_worker(tflite::Interpreter* interpreter) {
             int current_data_length = stage_payload.data.size();
             stage_payload.data.resize(current_data_length + num_elements);
             std::memcpy(stage_payload.data.data() + current_data_length,
-                ?????,
+                output_tensor->data.f,
                 num_elements * sizeof(float));
             stage_payload.tensor_end_offsets.push_back(current_data_length + num_elements);
         } // end of for loop
@@ -334,14 +334,14 @@ int main(int argc, char* argv[]) {
     /* Load models */
     // 1. Create a std::unique_ptr<tflite::FlatBufferModel> for each sub-model
     // ======= Write your code here =======
-
-    
-
-
-
-
-
-
+    std::unique_ptr<tflite::FlatBufferModel> submodel0_model = 
+        tflite::FlatBufferModel::BuildFromFile(submodel0_path.c_str());
+    std::unique_ptr<tflite::FlatBufferModel> submodel1_model = 
+        tflite::FlatBufferModel::BuildFromFile(submodel1_path.c_str());
+    if (!submodel0_model || !submodel1_model) {
+        std::cerr << "Failed to load one or both models" << std::endl;
+        return 1;
+    }
     // ====================================
 
     /* Build interpreters */
@@ -349,17 +349,17 @@ int main(int argc, char* argv[]) {
     // 2. Create two interpreter builders, one for each sub-model
     // 3. Build interpreters using the interpreter builders
     // ======= Write your code here =======
-
-    
-
-
-
-
-
-
-
-
-
+    tflite::ops::builtin::BuiltinOpResolver resolver;
+    tflite::InterpreterBuilder submodel0_builder(*submodel0_model, resolver);
+    tflite::InterpreterBuilder submodel1_builder(*submodel1_model, resolver);
+    std::unique_ptr<tflite::Interpreter> submodel0_interpreter;
+    std::unique_ptr<tflite::Interpreter> submodel1_interpreter;
+    submodel0_builder(&submodel0_interpreter);
+    submodel1_builder(&submodel1_interpreter);
+    if (!submodel0_interpreter || !submodel1_interpreter) {
+        std::cerr << "Failed to initialize interpreters" << std::endl;
+        return 1;
+    }
     // ====================================
 
     /* Apply delegate */
@@ -368,29 +368,29 @@ int main(int argc, char* argv[]) {
     // 3. Create a GPU delegate
     // 4. Apply the GPU delegate to the submodel1 interpreter
     // ======= Write your code here =======
-
-    
-
-
-
-
-
-
-
-
+    TfLiteDelegate* xnn_delegate = TfLiteXNNPackDelegateCreate(nullptr);
+    if(submodel0_interpreter->ModifyGraphWithDelegate(xnn_delegate) != kTfLiteOk) {
+        std::cerr << "Failed to apply XNNPACK delegate to submodel0" << std::endl;
+        return 1;
+    }
+    TfLiteDelegate* gpu_delegate = TfLiteGpuDelegateV2Create(nullptr);
+    if(submodel1_interpreter->ModifyGraphWithDelegate(gpu_delegate) != kTfLiteOk) {
+        std::cerr << "Failed to apply GPU delegate to submodel1" << std::endl;
+        return 1;
+    }
     // ====================================
 
     /* Allocate tensors */
     // 1. Allocate tensors for both interpreters
     // ======= Write your code here =======
-
-    
-
-
-
-
-
-
+    if (submodel0_interpreter->AllocateTensors() != kTfLiteOk) {
+        std::cerr << "Failed to allocate tensors for submodel0" << std::endl;
+        return 1;
+    }
+    if (submodel1_interpreter->AllocateTensors() != kTfLiteOk) {
+        std::cerr << "Failed to allocate tensors for submodel1" << std::endl;
+        return 1;
+    }
     // ====================================
 
     // Running pipelined inference driver
@@ -403,10 +403,10 @@ int main(int argc, char* argv[]) {
     // 3. Launch stage2_worker in a new thread with submodel1 interpreter
     // 4. Launch stage3_worker in a new thread with class_labels_map
     // ======= Write your code here =======
-
-    
-
-
+    std::thread stage0_thread(stage0_worker, images, input_period_ms);
+    std::thread stage1_thread(stage1_worker, submodel0_interpreter.get());
+    std::thread stage2_thread(stage2_worker, submodel1_interpreter.get());
+    std::thread stage3_thread(stage3_worker, class_labels_map);
     // ====================================
 
     // Setting CPU affinity for each thread
