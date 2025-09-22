@@ -17,9 +17,9 @@ set -e  # Exit if any command fails
 # --------- CONFIGURATION ---------
 executable="./bin/pipelined_inference_driver"
 submodel0="./models/submodel_0.tflite"
-submodel0_gpu_usage="true"
+submodel0_gpu_usage="false" # adjust as needed
 submodel1="./models/submodel_1.tflite"
-submodel1_gpu_usage="true"
+submodel1_gpu_usage="true" # adjust as needed
 class_labels="class_labels.json"
 base_images=(
     "./images/_images_1.png"
@@ -29,7 +29,7 @@ base_images=(
     "./images/_images_5.png"
     "./images/_images_6.png"
 )
-input_period_ms=0
+input_period_ms=0 # adjust as needed
 total_inputs=500 # adjust as needed
 # ---------------------------------
 

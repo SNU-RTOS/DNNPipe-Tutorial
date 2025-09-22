@@ -67,7 +67,7 @@ PIPELINED_DRIVER_BIN := $(OUT_DIR)/pipelined_inference_driver
 .PHONY: all clean
 
 # Build all if no option is provided
-all: $(INFERENCE_DRIVER_BIN) $(INST_HARNESS_BIN)
+all: $(INFERENCE_DRIVER_BIN) $(INST_HARNESS_BIN) $(PIPELINED_DRIVER_BIN) 
 	@echo "Build completed successfully."
 
 # Optional single target build
