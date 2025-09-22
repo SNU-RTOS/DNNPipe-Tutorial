@@ -409,7 +409,6 @@ int main(int argc, char* argv[]) {
     util::timer_start("Total Latency");
 
     /* Create and launch threads */
-    // Hint: std::thread thread_name(function name, arguments...);
     // 1. Launch stage0_worker in a new thread with images and input_period_ms
     // 2. Launch stage1_worker in a new thread with submodel0 interpreter
     // 3. Launch stage2_worker in a new thread with submodel1 interpreter
