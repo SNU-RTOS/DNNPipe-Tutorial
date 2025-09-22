@@ -363,20 +363,32 @@ int main(int argc, char* argv[]) {
     // ====================================
 
     /* Apply delegate */
-    // 1. Create a XNNPACK delegate
+    // 1. Create a XNNPACK or GPU delegate
     // 2. Apply the delegate to the submodel0 interpreter
-    // 3. Create a GPU delegate
-    // 4. Apply the GPU delegate to the submodel1 interpreter
+    // 3. Repeat for submodel1 interpreter
     // ======= Write your code here =======
-    TfLiteDelegate* xnn_delegate = TfLiteXNNPackDelegateCreate(nullptr);
-    if(submodel0_interpreter->ModifyGraphWithDelegate(xnn_delegate) != kTfLiteOk) {
-        std::cerr << "Failed to apply XNNPACK delegate to submodel0" << std::endl;
-        return 1;
+    TfLiteDelegate* xnn_delegate0 = TfLiteXNNPackDelegateCreate(nullptr);
+    TfLiteDelegate* gpu_delegate0 = TfLiteGpuDelegateV2Create(nullptr);
+    if(submodel0_gpu_usage) {
+        if(submodel0_interpreter->ModifyGraphWithDelegate(gpu_delegate0) == kTfLiteOk) {
+            if(xnn_delegate0) TfLiteXNNPackDelegateDelete(xnn_delegate0);
+        }
+    } else {
+        if(submodel0_interpreter->ModifyGraphWithDelegate(xnn_delegate0) == kTfLiteOk) {
+            if(gpu_delegate0) TfLiteGpuDelegateV2Delete(gpu_delegate0);
+        }
     }
-    TfLiteDelegate* gpu_delegate = TfLiteGpuDelegateV2Create(nullptr);
-    if(submodel1_interpreter->ModifyGraphWithDelegate(gpu_delegate) != kTfLiteOk) {
-        std::cerr << "Failed to apply GPU delegate to submodel1" << std::endl;
-        return 1;
+    
+    TfLiteDelegate* xnn_delegate1 = TfLiteXNNPackDelegateCreate(nullptr);
+    TfLiteDelegate* gpu_delegate1 = TfLiteGpuDelegateV2Create(nullptr);
+    if(submodel1_gpu_usage) {
+        if(submodel1_interpreter->ModifyGraphWithDelegate(gpu_delegate1) == kTfLiteOk) {
+            if(xnn_delegate1) TfLiteXNNPackDelegateDelete(xnn_delegate1);
+        }
+    } else {
+        if(submodel1_interpreter->ModifyGraphWithDelegate(xnn_delegate1) == kTfLiteOk) {
+            if(gpu_delegate1) TfLiteGpuDelegateV2Delete(gpu_delegate1);
+        }
     }
     // ====================================
 
