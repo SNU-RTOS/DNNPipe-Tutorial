@@ -61,7 +61,7 @@ void inspect_interpreter_instantiation(const tflite::FlatBufferModel* model,
 
     // 2. Operator mapping
     const auto* op_codes = model_root->operator_codes(); // It is a vector of tflite::OperatorCode
-    std::cout << "\nTotal " << op_codes->size() << " operators in the model" << std::endl;
+    std::cout << "\nTotal " << op_codes->size() << " operator codes in the model" << std::endl;
 
     for (int i = 0; i < op_codes->size(); i++) {
         const auto* opcode = op_codes->Get(i); // The i th operator code in the op_codes
@@ -73,7 +73,7 @@ void inspect_interpreter_instantiation(const tflite::FlatBufferModel* model,
         std::cout << "[" << i << "] " << op_name << ", version: " << op_version 
         << ", supported (Y/N): " << (reg ? "Y" : "N") << std::endl;
         if(!reg) {
-            std::cerr << "Unsupported opertor exists in the model file" << std::endl;
+            std::cerr << "Unsupported opertor code exists in the model file" << std::endl;
             exit(1);
         }
     }
@@ -139,7 +139,7 @@ void inspect_interpreter_instantiation(const tflite::FlatBufferModel* model,
 
         // 3-3. Parses node information in the SubGraph, which is a vector of node indices in execution order
         const auto* operators = subGraph->operators(); // A vector that contains the operators of the subgraph in execution order
-        std::cout << "\nTotal " << operators->size() << " operators in SubGraph [" << i << "]" << std::endl;
+        std::cout << "\nTotal " << operators->size() << " nodes in SubGraph [" << i << "]" << std::endl;
         for(int i = 0; i < operators->size(); i++) {
             const auto* op = operators->Get(i); // Gets the i th operator in the vector
             int opcode_index = op->opcode_index(); // Gets the operator code of the operator
