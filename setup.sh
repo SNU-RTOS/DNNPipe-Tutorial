@@ -10,7 +10,7 @@
 # @Modified by: GeonhaPark on 08/10/25
 # @Contact: {nclee,ghpark,thkim}@redwood.snu.ac.kr
 #
-# @Description: Setup script for RTCSA25 tutorial
+# @Description: Setup script
 #
 #-----------------------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ echo "[INFO] ROOT_PATH: ${ROOT_PATH}"
 echo "[INFO] EXTERNAL_PATH: ${EXTERNAL_PATH}"
 echo "[INFO] LITERT_PATH: ${LITERT_PATH}"
 
-mkdir -p "${EXTERNAL_PATH}" "${ROOT_PATH}/inc" "${ROOT_PATH}/lib" "${ROOT_PATH}/obj" "${ROOT_PATH}/output" "${ROOT_PATH}/models"
+mkdir -p "${EXTERNAL_PATH}" "${ROOT_PATH}/inc" "${ROOT_PATH}/lib" "${ROOT_PATH}/obj" "${ROOT_PATH}/models"
 
 ########## Setup external sources ##########
 cd "${EXTERNAL_PATH}"
