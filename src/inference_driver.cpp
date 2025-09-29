@@ -53,14 +53,14 @@ int main(int argc, char *argv[])
     const std::string class_labels_path = argv[3];
     auto class_labels_map = util::load_class_labels(class_labels_path.c_str());
 
-    std::vector<std::string> images;    // List of input image paths
+    std::vector<std::string> image_paths;    // List of input image paths
     int input_period_ms = 0;            // Input period in milliseconds, default is 0 (no delay)
     for (int i = 4; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg.rfind("--input-period=", 0) == 0) // Check for input period argument
             input_period_ms = std::stoi(arg.substr(15));
         else 
-            images.push_back(arg);  // Assume it's an image path
+            image_paths.push_back(arg);  // Assume it's an image path
     }
     
     /* Load model */
@@ -126,9 +126,9 @@ int main(int argc, char *argv[])
         util::timer_start(preprocess_label);
         /* Preprocessing */
         // Load input image
-        cv::Mat image = cv::imread(images[count]);
+        cv::Mat image = cv::imread(image_paths[count]);
         if (image.empty()) {
-            std::cerr << "Failed to load image: " << images[count] << "\n";
+            std::cerr << "Failed to load image: " << image_paths[count] << "\n";
             continue;
         }
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
         next_wakeup_time += std::chrono::milliseconds(input_period_ms);
         std::this_thread::sleep_until(next_wakeup_time);
         ++count;
-    } while (count < images.size());
+    } while (count < image_paths.size());
     util::timer_stop("Total Latency");
 
     /* Print average E2E latency and throughput */
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
     util::print_average_latency("Preprocessing");
     util::print_average_latency("Inference");
     util::print_average_latency("Postprocessing");
-    util::print_throughput("Total Latency", images.size());    
+    util::print_throughput("Total Latency", image_paths.size());    
 
     return 0;
 }

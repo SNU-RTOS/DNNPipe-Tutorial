@@ -113,8 +113,7 @@ def slice_dnn(model, start, end, input_tensors):
                 
                 # Call the functor of the current layer to build a new layer
                 try:
-                    tensors_from_layer = \
-                        layer(tensors_to_layer)
+                    tensors_from_layer = layer(tensors_to_layer)
                 except: # When a custom layer's call signature deviates from Keras expectations
                     raise ValueError(f"Failed to call layer {layer.name} with tensors {tensors_to_layer}. "
                                      "Please check the layer's call function and the input tensors.")            

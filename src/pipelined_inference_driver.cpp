@@ -37,7 +37,7 @@ InterStageQueue<StagePayload> stage0_to_stage1_queue;
 InterStageQueue<StagePayload> stage1_to_stage2_queue;
 InterStageQueue<StagePayload> stage2_to_stage3_queue;
 
-void stage0_worker(const std::vector<std::string>& images, int input_period_ms) {
+void stage0_worker(const std::vector<std::string>& image_paths, int input_period_ms) {
     auto next_wakeup_time = std::chrono::high_resolution_clock::now();
     size_t idx = 0;
     do {
@@ -45,9 +45,9 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
         util::timer_start(label);
         /* Preprocessing */
         // Load image
-        cv::Mat image = cv::imread(images[idx]);
+        cv::Mat image = cv::imread(image_paths[idx]);
         if (image.empty()) {
-            std::cerr << "[Stage0] Failed to load image: " << images[idx] << "\n";
+            std::cerr << "[Stage0] Failed to load image: " << image_paths[idx] << "\n";
             util::timer_stop(label);
             continue;
         }
@@ -55,7 +55,7 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
         // Preprocess image
         cv::Mat preprocessed_image = util::preprocess_image_resnet(image, 224, 224);
         if (preprocessed_image.empty()) {
-            std::cerr << "[Stage0] Preprocessing failed: " << images[idx] << "\n";
+            std::cerr << "[Stage0] Preprocessing failed: " << image_paths[idx] << "\n";
             util::timer_stop(label);
             continue;
         }
@@ -82,7 +82,7 @@ void stage0_worker(const std::vector<std::string>& images, int input_period_ms) 
         // If next_wakeup_time is in the past, it will not sleep
         next_wakeup_time += std::chrono::milliseconds(input_period_ms);
         std::this_thread::sleep_until(next_wakeup_time);
-    } while (idx < images.size());
+    } while (idx < image_paths.size());
 
     // Notify stage1_thread that no more data will be sent
     stage0_to_stage1_queue.signal_shutdown();
@@ -321,14 +321,14 @@ int main(int argc, char* argv[]) {
     const std::string class_labels_path = argv[5];
     auto class_labels_map = util::load_class_labels(class_labels_path.c_str());
 
-    std::vector<std::string> images;    // List of input image paths
+    std::vector<std::string> image_paths;    // List of input image paths
     int input_period_ms = 0;            // Input period in milliseconds, default is 0 (no delay)
     for (int i = 6; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg.rfind("--input-period=", 0) == 0)
             input_period_ms = std::stoi(arg.substr(15)); 
         else
-            images.push_back(arg);  // Assume it's an image path
+            image_paths.push_back(arg);  // Assume it's an image path
     }
 
     /* Load models */
@@ -409,12 +409,12 @@ int main(int argc, char* argv[]) {
     util::timer_start("Total Latency");
 
     /* Create and launch threads */
-    // 1. Launch stage0_worker in a new thread with images and input_period_ms
+    // 1. Launch stage0_worker in a new thread with image_paths and input_period_ms
     // 2. Launch stage1_worker in a new thread with submodel0 interpreter
     // 3. Launch stage2_worker in a new thread with submodel1 interpreter
     // 4. Launch stage3_worker in a new thread with class_labels_map
     // ======= Write your code here =======
-    std::thread stage0_thread(stage0_worker, images, input_period_ms);
+    std::thread stage0_thread(stage0_worker, image_paths, input_period_ms);
     std::thread stage1_thread(stage1_worker, submodel0_interpreter.get());
     std::thread stage2_thread(stage2_worker, submodel1_interpreter.get());
     std::thread stage3_thread(stage3_worker, class_labels_map);
@@ -439,7 +439,7 @@ int main(int argc, char* argv[]) {
     util::print_average_latency("Stage1");
     util::print_average_latency("Stage2");
     util::print_average_latency("Stage3");
-    util::print_throughput("Total Latency", images.size());
+    util::print_throughput("Total Latency", image_paths.size());
 
     return 0;
 }
